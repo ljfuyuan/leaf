@@ -57,8 +57,7 @@ func New(st interface{}) (*RecordFile, error) {
 				f.Name, kind)
 		}
 
-		tag := f.Tag
-		if tag == "index" {
+		if key, ok := f.Tag.Lookup("key"); ok && key == "index" {
 			switch kind {
 			case reflect.Struct, reflect.Array, reflect.Slice:
 				return nil, fmt.Errorf("could not index %s field %v %v",
@@ -103,7 +102,7 @@ func (rf *RecordFile) Read(name string) error {
 	indexes := []Index{}
 	for i := 0; i < typeRecord.NumField(); i++ {
 		tag := typeRecord.Field(i).Tag
-		if tag == "index" {
+		if key, ok := tag.Lookup("key"); ok && key == "index" {
 			indexes = append(indexes, make(Index))
 		}
 	}
@@ -172,7 +171,7 @@ func (rf *RecordFile) Read(name string) error {
 			} else if kind == reflect.Struct ||
 				kind == reflect.Array ||
 				kind == reflect.Slice ||
-				kind == reflect.Map{
+				kind == reflect.Map {
 				err = json.Unmarshal([]byte(strField), field.Addr().Interface())
 			}
 
@@ -182,7 +181,7 @@ func (rf *RecordFile) Read(name string) error {
 			}
 
 			// indexes
-			if f.Tag == "index" {
+			if key, ok := f.Tag.Lookup("key"); ok && key == "index" {
 				index := indexes[iIndex]
 				iIndex++
 				if _, ok := index[field.Interface()]; ok {
